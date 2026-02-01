@@ -1,17 +1,18 @@
-name: Update Repo Description
+name: Update Repository Description
 
 on:
-  workflow_dispatch:  # manual trigger
+  workflow_dispatch:
 
 jobs:
   update-description:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # required
+      contents: write
+
     steps:
-      - name: Update repository description
+      - name: Update repo description
         run: |
           gh repo edit "$GITHUB_REPOSITORY" \
-            --description "This description was updated by GitHub Actions 🚀"
+            --description "This repo description was updated via GitHub Actions 🚀"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
