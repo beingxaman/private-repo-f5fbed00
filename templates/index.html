@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subdomain Finder</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #38bdf8;
+      letter-spacing: 0.05em;
+    }
+
+    header p {
+      color: #94a3b8;
+      margin-top: 0.4rem;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      width: 100%;
+      max-width: 700px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .input-row input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.65rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-row input[type="text"]:focus {
+      border-color: #38bdf8;
+    }
+
+    .input-row button {
+      padding: 0.65rem 1.4rem;
+      border-radius: 8px;
+      border: none;
+      background: #38bdf8;
+      color: #0f172a;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .input-row button:hover { background: #7dd3fc; }
+    .input-row button:disabled { background: #64748b; cursor: not-allowed; }
+
+    .options {
+      margin-top: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    .options input[type="checkbox"] { accent-color: #38bdf8; }
+
+    #status {
+      margin-top: 1.2rem;
+      min-height: 1.5rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    #status.error { color: #f87171; }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .results-header h2 {
+      font-size: 1rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .badge {
+      background: #0ea5e9;
+      color: #0f172a;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.15rem 0.65rem;
+    }
+
+    #subdomain-list {
+      list-style: none;
+      max-height: 400px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid #334155;
+    }
+
+    #subdomain-list li {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.92rem;
+      font-family: 'Courier New', monospace;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.15s;
+    }
+
+    #subdomain-list li:last-child { border-bottom: none; }
+    #subdomain-list li:hover { background: #0f172a; }
+
+    #subdomain-list li a {
+      color: #7dd3fc;
+      text-decoration: none;
+    }
+
+    #subdomain-list li a:hover { text-decoration: underline; }
+
+    .copy-btn {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #334155;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover {
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    #copy-all {
+      font-size: 0.8rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    #copy-all:hover { background: #334155; color: #e2e8f0; }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #94a3b8;
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .sources-note {
+      margin-top: 1.2rem;
+      font-size: 0.8rem;
+      color: #475569;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔍 Subdomain Finder</h1>
+    <p>Discover subdomains using multiple public sources</p>
+  </header>
+
+  <div class="card">
+    <div class="input-row">
+      <input type="text" id="domain" placeholder="e.g. example.com" autocomplete="off" />
+      <button id="find-btn" onclick="findSubdomains()">Find</button>
+    </div>
+
+    <div class="options">
+      <input type="checkbox" id="bruteforce-toggle" />
+      <label for="bruteforce-toggle">Enable DNS brute-force (wordlist scan)</label>
+    </div>
+
+    <div id="status"></div>
+
+    <div id="results-container" style="display:none">
+      <div class="results-header">
+        <h2>Discovered Subdomains <span id="count-badge" class="badge"></span></h2>
+        <button id="copy-all" onclick="copyAll()">Copy All</button>
+      </div>
+      <ul id="subdomain-list"></ul>
+    </div>
+
+    <p class="sources-note">
+      Sources: <strong>crt.sh</strong> (certificate transparency)
+      &bull; <strong>DNS brute-force</strong> (optional wordlist)
+    </p>
+  </div>
+
+  <script>
+    // Allow pressing Enter to trigger search
+    document.getElementById('domain').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') findSubdomains();
+    });
+
+    function setStatus(msg, isError) {
+      const el = document.getElementById('status');
+      el.innerHTML = msg;
+      el.className = isError ? 'error' : '';
+    }
+
+    function findSubdomains() {
+      const domain = document.getElementById('domain').value.trim();
+      const bruteforce = document.getElementById('bruteforce-toggle').checked;
+
+      if (!domain) {
+        setStatus('Please enter a domain.', true);
+        return;
+      }
+
+      // Reset UI
+      document.getElementById('results-container').style.display = 'none';
+      document.getElementById('subdomain-list').innerHTML = '';
+      document.getElementById('find-btn').disabled = true;
+      setStatus('<span class="spinner"></span>Searching…');
+
+      fetch('/find', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain, bruteforce })
+      })
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('find-btn').disabled = false;
+        if (data.error) {
+          setStatus(data.error, true);
+          return;
+        }
+
+        const list = document.getElementById('subdomain-list');
+        const container = document.getElementById('results-container');
+
+        if (!data.subdomains || data.subdomains.length === 0) {
+          setStatus('No subdomains found.');
+          return;
+        }
+
+        data.subdomains.forEach(sd => {
+          const li = document.createElement('li');
+
+          const a = document.createElement('a');
+          a.href = 'https://' + sd;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.textContent = sd;
+
+          const btn = document.createElement('button');
+          btn.className = 'copy-btn';
+          btn.textContent = 'Copy';
+          btn.addEventListener('click', function() { copyText(sd, this); });
+
+          li.appendChild(a);
+          li.appendChild(btn);
+          list.appendChild(li);
+        });
+
+        document.getElementById('count-badge').textContent = data.count;
+        container.style.display = 'block';
+        setStatus('');
+      })
+      .catch(() => {
+        document.getElementById('find-btn').disabled = false;
+        setStatus('Request failed. Is the server running?', true);
+      });
+    }
+
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = orig, 1500);
+      });
+    }
+
+    function copyAll() {
+      const items = [...document.querySelectorAll('#subdomain-list li a')]
+        .map(a => a.textContent).join('\n');
+      navigator.clipboard.writeText(items).then(() => {
+        const btn = document.getElementById('copy-all');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy All', 1500);
+      });
+    }
+  </script>
+</body>
+</html>
