@@ -113,4 +113,6 @@ def find_subdomains():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Enable debug mode only when explicitly requested via environment variable
+    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+    app.run(debug=debug)
