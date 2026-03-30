@@ -17,8 +17,12 @@ import requests
 import dns.resolver
 import os
 import re
+import logging
 
 app = Flask(__name__)
+
+# Basic logging configuration (can be overridden by the hosting environment)
+logging.basicConfig(level=logging.INFO)
 
 # Shared HTTP session for connection reuse
 _http = requests.Session()
@@ -55,8 +59,8 @@ def get_crtsh_subdomains(domain):
                     sub = sub.strip().lstrip("*.")
                     if _valid_subdomain(sub, domain):
                         subdomains.add(sub)
-    except Exception:
-        pass
+    except Exception as exc:
+        app.logger.warning("Error while querying crt.sh for %s: %s", domain, exc)
     return subdomains
 
 
@@ -77,8 +81,8 @@ def get_hackertarget_subdomains(domain):
                     sub = parts[0].strip().lower()
                     if _valid_subdomain(sub, domain):
                         subdomains.add(sub)
-    except Exception:
-        pass
+    except Exception as exc:
+        app.logger.warning("Error while querying HackerTarget for %s: %s", domain, exc)
     return subdomains
 
 
@@ -101,8 +105,8 @@ def get_alienvault_subdomains(domain):
                 hostname = record.get("hostname", "").strip().lower()
                 if _valid_subdomain(hostname, domain):
                     subdomains.add(hostname)
-    except Exception:
-        pass
+    except Exception as exc:
+        app.logger.warning("Error while querying AlienVault OTX for %s: %s", domain, exc)
     return subdomains
 
 
