@@ -29,6 +29,8 @@ _REQUEST_TIMEOUT = 15  # seconds
 
 def _valid_subdomain(sub, domain):
     """Return True if *sub* belongs to *domain*."""
+    if not sub or not isinstance(sub, str):
+        return False
     sub = sub.strip().lstrip("*.").lower()
     if not sub:
         return False

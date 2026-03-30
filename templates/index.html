@@ -282,7 +282,7 @@
 </head>
 <body>
   <header>
-    <h1>&#128269; Subdomain Finder</h1>
+    <h1>🔍 Subdomain Finder</h1>
     <p>Discover subdomains from multiple public intelligence sources</p>
   </header>
 
@@ -504,7 +504,7 @@
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement("a");
       a.href     = url;
-      a.download = domainInput.value.trim().replace(/\./g, "_") + "_subdomains.txt";
+      a.download = domainInput.value.trim().toLowerCase().replace(/\./g, "_") + "_subdomains.txt";
       document.body.appendChild(a);
       a.click();
       a.remove();
