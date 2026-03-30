@@ -127,8 +127,8 @@ def get_urlscan_subdomains(domain):
                 hostname = page.get("domain", "").strip().lower()
                 if _valid_subdomain(hostname, domain):
                     subdomains.add(hostname)
-    except Exception:
-        pass
+    except Exception as exc:
+        app.logger.warning("Error while querying urlscan.io for %s: %s", domain, exc)
     return subdomains
 
 
